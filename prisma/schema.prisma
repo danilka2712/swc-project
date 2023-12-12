@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String    @id @default(uuid())
+  name     String?
+  username String    @unique
+  password String
+  role     Role
+  banned   Boolean   @default(false)
+  topics   Topic[]
+  comments Comment[]
+  reply    Reply[]
+}
+
+// Define the `Post` table in the database
+model Topic {
+  id        String    @id @default(cuid())
+  title     String
+  content   String
+  publish   Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  User      User?     @relation(fields: [userId], references: [id])
+  userId    String?
+  comments  Comment[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+  userID    String
+  Topic     Topic?   @relation(fields: [topicId], references: [id])
+  topicId   String?
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  reply     Reply[]
+}
+
+model Reply {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+  commentId String
+  Comment   Comment  @relation(fields: [commentId], references: [id])
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+}
+
+enum Role {
+  ADMIN
+  WORKER
+  CUSTOMER
+}
